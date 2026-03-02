@@ -1,4 +1,4 @@
-package main
+package consumer
 
 import "time"
 
@@ -12,10 +12,10 @@ type Trace struct {
 	PromptTokens       uint32    `json:"prompt_tokens"`
 	CompletionTokens   uint32    `json:"completion_tokens"`
 	TotalTokens        uint32    `json:"total_tokens"`
-	LatencyMs          uint32    `json:"latency_ms"`
+	LatencyMs          float64   `json:"latency_ms"`
 	CostUSD            float64   `json:"estimated_cost_usd"`
-	HallucinationScore *float32  `json:"hallucination_score"`
+	HallucinationScore *float64  `json:"hallucination_score"`
 	UserID             string    `json:"user_id"`
 	SessionID          string    `json:"session_id"`
-	Metadata           string    `json:"metadata"`
+	Metadata           map[string]string `json:"metadata"`
 }

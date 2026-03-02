@@ -1,4 +1,4 @@
-package main
+package consumer
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func newClickHouseConn(dsn string) (driver.Conn, error) {
+func NewClickHouseConn(dsn string) (driver.Conn, error) {
 	opts, err := clickhouse.ParseDSN(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("parse clickhouse dsn: %w", err)
@@ -21,7 +21,7 @@ func newClickHouseConn(dsn string) (driver.Conn, error) {
 	return conn, nil
 }
 
-func insertTraces(ctx context.Context, conn driver.Conn, traces []Trace) error {
+func InsertTraces(ctx context.Context, conn driver.Conn, traces []Trace) error {
 	batch, err := conn.PrepareBatch(ctx, `INSERT INTO llm_traces (
 		trace_id, timestamp, model, prompt_version,
 		prompt_tokens, completion_tokens, total_tokens,

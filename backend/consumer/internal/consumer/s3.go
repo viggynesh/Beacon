@@ -1,4 +1,4 @@
-package main
+package consumer
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func newS3Client(ctx context.Context, region, endpointURL string) (*s3.Client, error) {
+func NewS3Client(ctx context.Context, region, endpointURL string) (*s3.Client, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	if err != nil {
 		return nil, fmt.Errorf("load aws config: %w", err)
@@ -27,7 +27,7 @@ func newS3Client(ctx context.Context, region, endpointURL string) (*s3.Client, e
 	return s3.NewFromConfig(cfg, opts...), nil
 }
 
-func uploadTrace(ctx context.Context, client *s3.Client, bucket string, trace Trace, rawJSON []byte) error {
+func UploadTrace(ctx context.Context, client *s3.Client, bucket string, trace Trace, rawJSON []byte) error {
 	key := fmt.Sprintf("%s/%s.json", trace.Timestamp.Format("2006/01/02"), trace.TraceID)
 	_, err := client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(bucket),
