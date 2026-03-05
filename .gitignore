@@ -1,0 +1,3 @@
+.env
+.gitignoreinfra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
