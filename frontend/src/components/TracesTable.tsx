@@ -2,6 +2,7 @@ import type { Trace } from "../types";
 
 interface Props {
   traces: Trace[];
+  onSelect: (trace: Trace) => void;
 }
 
 const columns: { key: keyof Trace; label: string; format?: (v: unknown) => string }[] = [
@@ -11,7 +12,7 @@ const columns: { key: keyof Trace; label: string; format?: (v: unknown) => strin
     format: (v) => new Date(v as string).toLocaleString(),
   },
   { key: "model", label: "Model" },
-  { key: "prompt_version", label: "Prompt Version" },
+  { key: "prompt_version", label: "Version" },
   {
     key: "total_tokens",
     label: "Tokens",
@@ -29,24 +30,28 @@ const columns: { key: keyof Trace; label: string; format?: (v: unknown) => strin
   },
 ];
 
-export default function TracesTable({ traces }: Props) {
+export default function TracesTable({ traces, onSelect }: Props) {
   return (
-    <div className="rounded-xl bg-white shadow ring-1 ring-gray-200 overflow-x-auto">
+    <div className="rounded-2xl bg-[#0f1629] shadow-xl ring-1 ring-white/10 overflow-x-auto">
       <table className="min-w-full text-sm">
-        <thead className="bg-gray-50 text-left text-gray-600">
-          <tr>
+        <thead>
+          <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wider text-gray-400">
             {columns.map((c) => (
-              <th key={c.key} className="px-4 py-3 font-medium">
+              <th key={c.key} className="px-5 py-3.5 font-medium">
                 {c.label}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-white/5">
           {traces.map((t) => (
-            <tr key={t.trace_id} className="hover:bg-gray-50">
+            <tr
+              key={t.trace_id}
+              onClick={() => onSelect(t)}
+              className="cursor-pointer text-gray-300 transition-colors hover:bg-white/5"
+            >
               {columns.map((c) => (
-                <td key={c.key} className="px-4 py-3 whitespace-nowrap">
+                <td key={c.key} className="px-5 py-3 whitespace-nowrap">
                   {c.format ? c.format(t[c.key]) : String(t[c.key])}
                 </td>
               ))}
