@@ -56,6 +56,22 @@ services:
     networks:
       - beacon
 
+  drift:
+    build:
+      context: backend/drift
+      dockerfile: Dockerfile
+    environment:
+      CLICKHOUSE_DSN: ${CLICKHOUSE_DSN:-clickhouse://beacon:beacon@clickhouse:9000/beacon}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+      PAGERDUTY_ROUTING_KEY: ${PAGERDUTY_ROUTING_KEY:-}
+      DRIFT_INTERVAL: ${DRIFT_INTERVAL:-5m}
+      DRIFT_THRESHOLD: ${DRIFT_THRESHOLD:-0.2}
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    networks:
+      - beacon
+
 volumes:
   clickhouse_data:
   localstack_data:
