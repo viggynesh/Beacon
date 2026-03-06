@@ -4,32 +4,89 @@ interface Props {
   stats: ModelStats[];
 }
 
+const cardConfig = [
+  {
+    label: "Total Cost",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M8 1v14M11.5 3.5H6.25a2.25 2.25 0 000 4.5h3.5a2.25 2.25 0 010 4.5H4" />
+      </svg>
+    ),
+    color: "text-violet-400",
+    border: "border-violet-500/20",
+    bg: "bg-violet-500/[0.06]",
+    iconBg: "bg-violet-500/10",
+  },
+  {
+    label: "Avg Latency",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <circle cx="8" cy="8" r="6.5" /><path d="M8 4v4l2.5 2.5" />
+      </svg>
+    ),
+    color: "text-indigo-400",
+    border: "border-indigo-500/20",
+    bg: "bg-indigo-500/[0.06]",
+    iconBg: "bg-indigo-500/10",
+  },
+  {
+    label: "Total Tokens",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M2 4h12M2 8h8M2 12h10" />
+      </svg>
+    ),
+    color: "text-sky-400",
+    border: "border-sky-500/20",
+    bg: "bg-sky-500/[0.06]",
+    iconBg: "bg-sky-500/10",
+  },
+  {
+    label: "Total Traces",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M2 12l4-5 3 3 5-7" />
+      </svg>
+    ),
+    color: "text-emerald-400",
+    border: "border-emerald-500/20",
+    bg: "bg-emerald-500/[0.06]",
+    iconBg: "bg-emerald-500/10",
+  },
+];
+
 export default function StatsBar({ stats }: Props) {
   const totalCost = stats.reduce((sum, s) => sum + s.total_cost_usd, 0);
   const totalTokens = stats.reduce((sum, s) => sum + s.total_tokens, 0);
   const totalTraces = stats.reduce((sum, s) => sum + s.trace_count, 0);
   const weightedLatency =
     totalTraces > 0
-      ? stats.reduce((sum, s) => sum + s.avg_latency_ms * s.trace_count, 0) /
-        totalTraces
+      ? stats.reduce((sum, s) => sum + s.avg_latency_ms * s.trace_count, 0) / totalTraces
       : 0;
 
-  const cards = [
-    { label: "Total Cost", value: `$${totalCost.toFixed(4)}`, accent: "from-violet-500/20 to-violet-500/5 ring-violet-500/20" },
-    { label: "Avg Latency", value: `${weightedLatency.toFixed(0)} ms`, accent: "from-indigo-500/20 to-indigo-500/5 ring-indigo-500/20" },
-    { label: "Total Tokens", value: totalTokens.toLocaleString(), accent: "from-sky-500/20 to-sky-500/5 ring-sky-500/20" },
-    { label: "Total Traces", value: totalTraces.toLocaleString(), accent: "from-emerald-500/20 to-emerald-500/5 ring-emerald-500/20" },
+  const values = [
+    `$${totalCost.toFixed(2)}`,
+    `${weightedLatency.toFixed(0)}ms`,
+    totalTokens.toLocaleString(),
+    totalTraces.toLocaleString(),
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {cards.map((c) => (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {cardConfig.map((cfg, i) => (
         <div
-          key={c.label}
-          className={`rounded-2xl bg-gradient-to-br ${c.accent} p-5 ring-1`}
+          key={cfg.label}
+          className={`card-glow rounded-xl border ${cfg.border} ${cfg.bg} p-4 transition-colors`}
         >
-          <p className="text-sm text-gray-400">{c.label}</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-gray-100">{c.value}</p>
+          <div className="flex items-center gap-2.5">
+            <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${cfg.iconBg} ${cfg.color}`}>
+              {cfg.icon}
+            </div>
+            <span className="text-xs font-medium text-gray-500">{cfg.label}</span>
+          </div>
+          <p className="mt-3 text-2xl font-semibold tabular-nums tracking-tight text-gray-100">
+            {values[i]}
+          </p>
         </div>
       ))}
     </div>
