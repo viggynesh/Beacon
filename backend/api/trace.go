@@ -14,7 +14,7 @@ type Trace struct {
 	TotalTokens        uint32    `json:"total_tokens"`
 	LatencyMs          float64   `json:"latency_ms"`
 	CostUSD            float64   `json:"estimated_cost_usd"`
-	HallucinationScore *float32  `json:"hallucination_score"`
+	HallucinationScore *float64  `json:"hallucination_score"`
 	UserID             string    `json:"user_id"`
 	SessionID          string    `json:"session_id"`
 	Metadata           map[string]string `json:"metadata"`
