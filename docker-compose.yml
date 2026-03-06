@@ -1,0 +1,30 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    ports:
+      - "${CLICKHOUSE_PORT:-8123}:8123"
+      - "${CLICKHOUSE_NATIVE_PORT:-9000}:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-beacon}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-beacon}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-beacon}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  localstack:
+    image: localstack/localstack:3.4
+    ports:
+      - "${LOCALSTACK_PORT:-4566}:4566"
+    environment:
+      SERVICES: s3,sqs,kinesis
+    volumes:
+      - localstack_data:/var/lib/localstack
+
+volumes:
+  clickhouse_data:
+  localstack_data:
