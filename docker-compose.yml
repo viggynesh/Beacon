@@ -15,6 +15,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - beacon
 
   localstack:
     image: localstack/localstack:3.4
@@ -24,7 +26,40 @@ services:
       SERVICES: s3,sqs,kinesis
     volumes:
       - localstack_data:/var/lib/localstack
+    networks:
+      - beacon
+
+  api:
+    build:
+      context: backend/api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      CLICKHOUSE_DSN: ${CLICKHOUSE_DSN}
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    networks:
+      - beacon
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - beacon
 
 volumes:
   clickhouse_data:
   localstack_data:
+
+networks:
+  beacon:
+    driver: bridge
