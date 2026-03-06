@@ -36,7 +36,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      CLICKHOUSE_DSN: ${CLICKHOUSE_DSN}
+      CLICKHOUSE_DSN: ${CLICKHOUSE_DSN_DOCKER:-clickhouse://beacon:beacon@clickhouse:9000/beacon}
     depends_on:
       clickhouse:
         condition: service_healthy
@@ -61,7 +61,7 @@ services:
       context: backend/drift
       dockerfile: Dockerfile
     environment:
-      CLICKHOUSE_DSN: ${CLICKHOUSE_DSN:-clickhouse://beacon:beacon@clickhouse:9000/beacon}
+      CLICKHOUSE_DSN: ${CLICKHOUSE_DSN_DOCKER:-clickhouse://beacon:beacon@clickhouse:9000/beacon}
       SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
       PAGERDUTY_ROUTING_KEY: ${PAGERDUTY_ROUTING_KEY:-}
       DRIFT_INTERVAL: ${DRIFT_INTERVAL:-5m}
