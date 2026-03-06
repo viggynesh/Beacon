@@ -9,20 +9,39 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
+func writeJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(v)
+}
+
+func unavailable(w http.ResponseWriter) {
+	writeJSON(w, http.StatusServiceUnavailable, map[string]string{
+		"error": "ClickHouse is not available",
+	})
+}
+
 func healthHandler(conn driver.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := conn.Ping(r.Context()); err != nil {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			json.NewEncoder(w).Encode(map[string]string{"status": "error", "error": err.Error()})
+		if conn == nil {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "degraded", "clickhouse": "not connected"})
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+		if err := conn.Ping(r.Context()); err != nil {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "degraded", "clickhouse": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "clickhouse": "connected"})
 	}
 }
 
 func tracesHandler(conn driver.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if conn == nil {
+			unavailable(w)
+			return
+		}
+
 		q := r.URL.Query()
 		var f TraceFilters
 
@@ -32,7 +51,7 @@ func tracesHandler(conn driver.Conn) http.HandlerFunc {
 		if v := q.Get("start_time"); v != "" {
 			t, err := time.Parse(time.RFC3339, v)
 			if err != nil {
-				http.Error(w, "invalid start_time: must be RFC3339", http.StatusBadRequest)
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid start_time: must be RFC3339"})
 				return
 			}
 			f.StartTime = &t
@@ -40,7 +59,7 @@ func tracesHandler(conn driver.Conn) http.HandlerFunc {
 		if v := q.Get("end_time"); v != "" {
 			t, err := time.Parse(time.RFC3339, v)
 			if err != nil {
-				http.Error(w, "invalid end_time: must be RFC3339", http.StatusBadRequest)
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid end_time: must be RFC3339"})
 				return
 			}
 			f.EndTime = &t
@@ -48,7 +67,7 @@ func tracesHandler(conn driver.Conn) http.HandlerFunc {
 		if v := q.Get("limit"); v != "" {
 			n, err := strconv.Atoi(v)
 			if err != nil {
-				http.Error(w, "invalid limit: must be integer", http.StatusBadRequest)
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid limit: must be integer"})
 				return
 			}
 			f.Limit = n
@@ -56,46 +75,53 @@ func tracesHandler(conn driver.Conn) http.HandlerFunc {
 
 		traces, err := queryTraces(r.Context(), conn, f)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
 		}
 
 		if traces == nil {
 			traces = []Trace{}
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(traces)
+		writeJSON(w, http.StatusOK, traces)
 	}
 }
 
 func statsHandler(conn driver.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if conn == nil {
+			unavailable(w)
+			return
+		}
+
 		stats, err := queryStats(r.Context(), conn)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
 		}
 
 		if stats == nil {
 			stats = []ModelStats{}
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(stats)
+		writeJSON(w, http.StatusOK, stats)
 	}
 }
 
 func modelsHandler(conn driver.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if conn == nil {
+			unavailable(w)
+			return
+		}
+
 		models, err := queryModels(r.Context(), conn)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
 		}
 
 		if models == nil {
 			models = []string{}
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(models)
+		writeJSON(w, http.StatusOK, models)
 	}
 }
