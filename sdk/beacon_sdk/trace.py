@@ -1,12 +1,11 @@
 import asyncio
 import functools
-import json
-import sys
 import time
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Callable
 
+from .emitter import get_emitter
 from .pricing import estimate_cost
 
 
@@ -88,7 +87,7 @@ def trace(model: str | None = None, prompt_version: str | None = None) -> Callab
 
                 metrics = _extract_metrics(result)
                 trace_data = _build_trace(fn.__qualname__, elapsed_ms, metrics, model, prompt_version)
-                print(json.dumps(trace_data), file=sys.stdout, flush=True)
+                get_emitter().emit(trace_data)
                 return result
 
             return async_wrapper
@@ -102,7 +101,7 @@ def trace(model: str | None = None, prompt_version: str | None = None) -> Callab
 
                 metrics = _extract_metrics(result)
                 trace_data = _build_trace(fn.__qualname__, elapsed_ms, metrics, model, prompt_version)
-                print(json.dumps(trace_data), file=sys.stdout, flush=True)
+                get_emitter().emit(trace_data)
                 return result
 
             return sync_wrapper
