@@ -1,3 +1,5 @@
+https://github.com/user-attachments/assets/c880fd5c-2d39-42ef-9c02-b7ecfd60362a
+
 # Beacon
 
 **Open-source LLM observability platform — trace every call, track cost and latency, detect regressions automatically.**
